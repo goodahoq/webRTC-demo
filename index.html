@@ -14,6 +14,7 @@
 
     #canvas,
     #stream {
+      object-fit: fill;
       background: #fff;
       transform: rotateY(180deg);
     }
@@ -30,7 +31,7 @@
 
 <body>
   <div class="box">
-    <video id="stream" autoplay width=375 height="300" playsinline></video>
+    <video id="stream" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
   </div>
   <div>
@@ -43,14 +44,7 @@
     // 只擷取視訊
     let constraints = {
       audio: false,
-      video: {
-        width: {
-          ideal: 375
-        },
-        height: {
-          ideal: 300
-        }
-      }
+      video: true
     }
 
     let startBtn = document.getElementById('start')
@@ -87,24 +81,22 @@
         return null;
       }
       navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
-
-        console.log('stream: ', stream);
         video.srcObject = stream
         window.stream = stream
       }).catch(function(err) {
         console.log(err)
       })
-      // navigator.getUserMedia(constraints,
-      //   (stream) => {
-      //     video.srcObject = stream
-      //     window.stream = stream
-      //   }, (err) => {
-      //     console.log(err)
-      //   })
+
     }
 
     const snapEvent = () => {
-      ctx.drawImage(video, 0, 0, width, height);
+      const {
+        clientHeight,
+        clientWidth
+      } = video
+      canvas.width = clientWidth;
+      canvas.height = clientHeight
+      ctx.drawImage(video, 0, 0, clientWidth, clientHeight)
       let base64Image = canvas.toDataURL('image/png')
       canvas.toBlob((blob) => {
         let fd = new FormData()
