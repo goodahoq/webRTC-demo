@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <style>
+    body {
+      background-color: #eeeeee;
+      margin: 0;
+    }
+
+    #canvas,
+    #stream {
+      background: #fff;
+    }
+
+    .box {
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+  </style>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div class="box">
+    <video id="stream" autoplay controls width=375 height="300"></video>
+    <canvas id="canvas"></canvas>
+  </div>
+  <div>
+    <button id="start">開始</button>
+    <button id="snap">截圖</button>
+    <button id="stop">停止</button>
+  </div>
+
+  <script>
+    // 只擷取視訊
+    let constraints = {
+      audio: false,
+      video: {
+        facingMode: 'environment',
+        sourceId: 'default',
+      }
+
+    }
+
+    let startBtn = document.getElementById('start')
+    let stopBtn = document.getElementById('stop')
+    let snapBtn = document.getElementById('snap')
+
+    let video = document.getElementById('stream')
+    let canvas = document.getElementById('canvas')
+    let ctx = canvas.getContext('2d');
+    let width = video.width;
+    let height = video.height;
+    canvas.width = width;
+    canvas.height = height;
+
+    const onError = (error) => {
+      alert('Webcam Error\nName: ' + error.name + '\nMessage: ' + error.message);
+    }
+    const streaming = () => {
+      if (navigator.mediaDevices === undefined || navigator.mediaDevices.enumerateDevices === undefined || navigator.mediaDevices.getUserMedia === undefined) {
+        if (navigator.mediaDevices === undefined) {
+          var fctName = 'navigator.mediaDevices';
+        } else if (navigator.mediaDevices.enumerateDevices === undefined) {
+          var fctName = 'navigator.mediaDevices.enumerateDevices';
+        } else if (navigator.mediaDevices.getUserMedia === undefined) {
+          var fctName = 'navigator.mediaDevices.getUserMedia';
+        } else {
+          console.assert(false);
+        }
+        onError({
+          name: '',
+          message: 'WebRTC issue-! ' + fctName + ' not present in your browser'
+        });
+        return null;
+      }
+      navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
+
+        video.srcObject = stream
+        window.stream = stream
+      }).catch(function(err) {
+        console.log(err)
+      })
+      // navigator.getUserMedia(constraints,
+      //   (stream) => {
+      //     video.srcObject = stream
+      //     window.stream = stream
+      //   }, (err) => {
+      //     console.log(err)
+      //   })
+    }
+
+    const snapEvent = () => {
+      ctx.drawImage(video, 0, 0, width, height);
+      let base64Image = canvas.toDataURL('image/png')
+      canvas.toBlob((blob) => {
+        let fd = new FormData()
+        fd.append('img_file', blob)
+
+        axios.post('http://172.22.132.110:8080/v1/face-reader', fd).then(res => {
+          if (res.data.length) {
+            draw(res.data)
+          }
+        })
+      }, 'image/png', 1)
+
+      let fd = new FormData()
+      fd.append('img_file', base64Image)
+    }
+
+    const draw = (list) => {
+      list.forEach((e, i) => {
+        let {
+          x,
+          y,
+          w,
+          h
+        } = e.box
+        ctx.strokeStyle = '#e2e'
+        ctx.lineWidth = 2
+        ctx.strokeRect(x, y, w, h)
+      })
+    }
+
+    startBtn.addEventListener('click', () => {
+      streaming()
+    })
+
+    stopBtn.addEventListener('click', () => {
+      video.pause()
+    })
+
+    snapBtn.addEventListener('click', snapEvent)
+
+  </script>
+
+</body>
+
+</html>
