@@ -15,6 +15,14 @@
     #canvas,
     #stream {
       background: #fff;
+      transform: rotateY(180deg);
+    }
+
+    #stream ::-webkit-media-controls-play-button,
+    #stream ::-webkit-media-controls-start-playback-button {
+      opacity: 0;
+      pointer-events: none;
+      width: 5px;
     }
 
     .box {
@@ -24,11 +32,12 @@
 
   </style>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="lib/iphone-inline-video.min.js"></script>
 </head>
 
 <body>
   <div class="box">
-    <video id="stream" autoplay controls width=375 height="300"></video>
+    <video id="stream" autoplay width=375 height="300" playsinline></video>
     <canvas id="canvas"></canvas>
   </div>
   <div>
@@ -49,6 +58,7 @@
     let snapBtn = document.getElementById('snap')
 
     let video = document.getElementById('stream')
+    enableInlineVideo(video)
     let canvas = document.getElementById('canvas')
     let ctx = canvas.getContext('2d');
     let width = video.width;
