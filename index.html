@@ -18,13 +18,6 @@
       transform: rotateY(180deg);
     }
 
-    #stream ::-webkit-media-controls-play-button,
-    #stream ::-webkit-media-controls-start-playback-button {
-      opacity: 0;
-      pointer-events: none;
-      width: 5px;
-    }
-
     .box {
       overflow: hidden;
       margin-bottom: 10px;
@@ -50,7 +43,14 @@
     // 只擷取視訊
     let constraints = {
       audio: false,
-      video: true,
+      video: {
+        width: {
+          ideal: 375
+        },
+        height: {
+          ideal: 300
+        }
+      }
     }
 
     let startBtn = document.getElementById('start')
@@ -88,6 +88,7 @@
       }
       navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
 
+        console.log('stream: ', stream);
         video.srcObject = stream
         window.stream = stream
       }).catch(function(err) {
