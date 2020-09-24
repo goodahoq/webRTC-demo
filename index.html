@@ -44,7 +44,11 @@
     // 只擷取視訊
     let constraints = {
       audio: false,
-      video: true
+      video: {
+        facingMode: {
+          exact: "environment"
+        }
+      }
     }
 
     let startBtn = document.getElementById('start')
